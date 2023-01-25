@@ -24,7 +24,7 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 
-camera.position.z = 10;
+camera.position.z = 3;
 camera.position.x = 0;
 // camera.position.x = 12;
 // camera.position.y = -4;
@@ -49,7 +49,7 @@ const bloomPass = new UnrealBloomPass(
   0.85
 );
 bloomPass.threshold = 0;
-bloomPass.strength = 1; //intensity of glow
+bloomPass.strength = 3; //intensity of glow
 bloomPass.radius = 1;
 const bloomComposer = new EffectComposer(renderer);
 bloomComposer.setSize(window.innerWidth, window.innerHeight);
@@ -58,17 +58,17 @@ bloomComposer.addPass(renderScene);
 bloomComposer.addPass(bloomPass);
 
 //sun
-// const color = new THREE.Color("#FDB813");
-const color = new THREE.Color("#Fff");
+const color = new THREE.Color("#FDB813");
+// const color = new THREE.Color("#Fff");
 const geometry = new THREE.IcosahedronGeometry(1, 15);
 const material = new THREE.MeshBasicMaterial({ color });
 const sphere = new THREE.Mesh(geometry, material);
-sphere.position.set(0, 2, 1);
+sphere.position.set(-40, 20, -60);
 sphere.layers.set(1);
 scene.add(sphere);
 
 // galaxy geometry
-const starGeometry = new THREE.SphereGeometry(90, 64, 64);
+const starGeometry = new THREE.SphereGeometry(80, 64, 64);
 
 // galaxy material
 const starMaterial = new THREE.MeshBasicMaterial({
@@ -84,9 +84,40 @@ const starMesh = new THREE.Mesh(starGeometry, starMaterial);
 starMesh.layers.set(1);
 scene.add(starMesh);
 
+//earth geometry
+const earthGeometry = new THREE.SphereGeometry(0.98, 32, 32);
+
+//earth material
+const earthMaterial = new THREE.MeshPhongMaterial({
+  roughness: 1,
+  metalness: 0,
+  map: THREE.ImageUtils.loadTexture("01-3.jpg"),
+  bumbMap: THREE.ImageUtils.loadTexture("bump.jpg"),
+  bumpScale: 0.3,
+});
+
+//earthMesh
+const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
+earthMesh.receiveShadow = true;
+earthMesh.castShadow = true;
+earthMesh.layers.set(0);
+scene.add(earthMesh);
+
 //ambient light
 const ambientlight = new THREE.AmbientLight(0xffffff, 0.1);
 scene.add(ambientlight);
+
+//point light
+
+const pointLight = new THREE.PointLight(0xffffff, 1);
+pointLight.castShadow = true;
+pointLight.shadowCameraVisible = true;
+pointLight.shadowBias = 0.00001;
+pointLight.shadowDarkness = 0.2;
+pointLight.shadowMapWidth = 2048;
+pointLight.shadowMapHeight = 2048;
+pointLight.position.set(-50, 20, -60);
+scene.add(pointLight);
 
 //resize listner
 window.addEventListener(
@@ -104,8 +135,12 @@ window.addEventListener(
 const animate = () => {
   requestAnimationFrame(animate);
   starMesh.rotation.y += 0.005;
+  earthMesh.rotation.y += 0.05;
   camera.layers.set(1);
   bloomComposer.render();
+  renderer.clearDepth();
+  camera.layers.set(0);
+  renderer.render(scene, camera);
 };
 
 animate();
